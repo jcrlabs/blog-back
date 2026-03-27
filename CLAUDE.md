@@ -166,3 +166,19 @@ type Mutation {
 - **Namespace**: `blog`
 - **MongoDB**: StatefulSet PVC 10Gi
 - **MinIO**: bucket `blog-media` en instancia compartida del cluster
+
+## CI local
+
+Ejecutar **antes de cada commit** para evitar que lleguen errores a GitHub Actions:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+## Git
+
+- Ramas: `feature/`, `bugfix/`, `hotfix/`, `release/` — sin prefijos adicionales
+- Commits: convencional (`feat:`, `fix:`, `chore:`, etc.) — sin mencionar herramientas externas ni agentes en el mensaje
+- PRs: título y descripción propios del cambio — sin mencionar herramientas externas ni agentes
+- Comentarios y documentación: redactar en primera persona del equipo — sin atribuir autoría a herramientas
