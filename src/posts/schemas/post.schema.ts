@@ -49,6 +49,9 @@ export class Post {
 
   @Prop()
   source: string
+
+  createdAt: Date
+  updatedAt: Date
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post)

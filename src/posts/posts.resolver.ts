@@ -23,17 +23,17 @@ export class PostsResolver {
   async posts(
     @Args('filter', { nullable: true }) filter?: PostFilterInput,
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
-  ) {
+  ): Promise<PostType[]> {
     const docs = await this.postsService.findPublished(filter, pagination)
-    return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: [] }))
+    return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: [] })) as PostType[]
   }
 
   @Public()
   @Query(() => PostType, { nullable: true })
-  async post(@Args('slug') slug: string) {
+  async post(@Args('slug') slug: string): Promise<PostType | null> {
     const doc = await this.postsService.findBySlug(slug)
     if (!doc) return null
-    return { ...doc, id: doc._id.toString(), tagNames: [] }
+    return { ...doc, id: doc._id.toString(), tagNames: [] } as PostType
   }
 
   @Roles(Role.ADMIN, Role.AUTHOR)
@@ -41,23 +41,23 @@ export class PostsResolver {
   async createPost(
     @Args('input') input: CreatePostInput,
     @CurrentUser() user: AuthUser,
-  ) {
+  ): Promise<PostType> {
     const doc = await this.postsService.create(input, user.id)
-    return { ...doc.toObject(), id: doc._id.toString(), tagNames: [] }
+    return { ...doc.toObject(), id: doc._id.toString(), tagNames: [] } as PostType
   }
 
   @Roles(Role.ADMIN)
   @Mutation(() => PostType)
-  async publishPost(@Args('id', { type: () => ID }) id: string) {
+  async publishPost(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
     const doc = await this.postsService.publish(id)
-    return doc ? { ...doc.toObject(), id: doc._id.toString(), tagNames: [] } : null
+    return doc ? ({ ...doc.toObject(), id: doc._id.toString(), tagNames: [] } as PostType) : null
   }
 
   @Roles(Role.ADMIN)
   @Mutation(() => PostType)
-  async unpublishPost(@Args('id', { type: () => ID }) id: string) {
+  async unpublishPost(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
     const doc = await this.postsService.unpublish(id)
-    return doc ? { ...doc.toObject(), id: doc._id.toString(), tagNames: [] } : null
+    return doc ? ({ ...doc.toObject(), id: doc._id.toString(), tagNames: [] } as PostType) : null
   }
 
   @Roles(Role.ADMIN)

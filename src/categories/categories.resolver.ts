@@ -8,8 +8,8 @@ export class CategoriesResolver {
   constructor(private svc: CategoriesService) {}
   @Public()
   @Query(() => [CategoryType])
-  async categories() {
+  async categories(): Promise<CategoryType[]> {
     const docs = await this.svc.findAll()
-    return docs.map((d) => ({ ...d, id: d._id.toString() }))
+    return docs.map((d) => ({ ...d, id: d._id.toString() })) as CategoryType[]
   }
 }
