@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/jcrlabs/blog-back
+  pullPolicy: IfNotPresent
+  tag: ""
+  pullSecretName: ghcr-pull-secret
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  host: ""
+  tls: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+
+secretName: ""
+
+env:
+  MONGODB_URI: ""
+  JWT_SECRET: ""
+  JWT_REFRESH_SECRET: ""
+  CORS_ORIGINS: "https://tech-blog.jcrlabs.net"

@@ -162,7 +162,7 @@ type Mutation {
 
 ## Deploy
 
-- **Dominio**: `blog-api.jcrlabs.net` (API) + `blog.jcrlabs.net` (frontend)
+- **Dominio**: `tech-blog-api.jcrlabs.net` (API) + `tech-blog.jcrlabs.net` (frontend)
 - **Namespace**: `blog`
 - **MongoDB**: StatefulSet PVC 10Gi
 - **MinIO**: bucket `blog-media` en instancia compartida del cluster
