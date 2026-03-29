@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "blog-back.fullname" . }}
+  labels:
+    {{- include "blog-back.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "blog-back.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "blog-back.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      {{- if .Values.image.pullSecretName }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecretName }}
+      {{- end }}
+      containers:
+        - name: blog-back
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            {{- if .Values.env.CORS_ORIGINS }}
+            - name: CORS_ORIGINS
+              value: {{ .Values.env.CORS_ORIGINS | quote }}
+            {{- end }}
+          {{- if .Values.secretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secretName }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/livez
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
