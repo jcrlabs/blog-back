@@ -15,11 +15,11 @@
   "dependencies": {
     "@apollo/server": "^4.11.0",
     "@aws-sdk/client-s3": "^3.654.0",
-    "@nestjs/apollo": "^12.2.0",
+    "@nestjs/apollo": "^13.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/graphql": "^12.2.0",
+    "@nestjs/graphql": "^13.0.0",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/mongoose": "^10.1.0",
     "@nestjs/passport": "^10.0.3",
