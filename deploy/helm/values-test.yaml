@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  tag: develop-3d07dc5
+  tag: develop-d800dbe
 ingress:
   host: tech-blog-api-test.jcrlabs.net
 env:
