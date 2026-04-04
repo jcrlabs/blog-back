@@ -67,10 +67,12 @@ export class IngestService {
           const exists = await this.postModel.findOne({ sourceUrl: item.link }).lean()
           if (exists) continue
           const tags = this.extractTags(item.title + ' ' + (item.contentSnippet ?? ''))
+          const content = (item as unknown as { content?: string }).content ?? null
           await this.postModel.create({
             title: item.title,
             slug: await this.uniqueSlug(item.title),
             summary: item.contentSnippet?.slice(0, 500),
+            content: content || undefined,
             sourceUrl: item.link,
             source: source.name,
             status: source.auto ? PostStatus.INGESTED_AUTO : PostStatus.INGESTED_MANUAL,
