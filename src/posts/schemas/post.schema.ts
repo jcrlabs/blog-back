@@ -44,6 +44,9 @@ export class Post {
   @Prop([{ type: Types.ObjectId, ref: 'Tag' }])
   tags: Types.ObjectId[]
 
+  @Prop([String])
+  tagNames: string[]
+
   @Prop()
   sourceUrl: string
 

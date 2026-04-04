@@ -25,7 +25,7 @@ export class PostsResolver {
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
   ): Promise<PostType[]> {
     const docs = await this.postsService.findPublished(filter, pagination)
-    return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: [] })) as PostType[]
+    return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: d.tagNames ?? [] })) as PostType[]
   }
 
   @Public()
@@ -33,7 +33,7 @@ export class PostsResolver {
   async post(@Args('slug') slug: string): Promise<PostType | null> {
     const doc = await this.postsService.findBySlug(slug)
     if (!doc) return null
-    return { ...doc, id: doc._id.toString(), tagNames: [] } as PostType
+    return { ...doc, id: doc._id.toString(), tagNames: doc.tagNames ?? [] } as PostType
   }
 
   @Roles(Role.ADMIN, Role.AUTHOR)
