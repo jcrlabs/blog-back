@@ -1,7 +1,7 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.14.0 --activate
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* tsconfig*.json nest-cli.json ./
 RUN pnpm install
 COPY . .
 RUN pnpm build
