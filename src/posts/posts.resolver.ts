@@ -61,6 +61,27 @@ export class PostsResolver {
   }
 
   @Roles(Role.ADMIN)
+  @Query(() => [PostType])
+  async pendingPosts(): Promise<PostType[]> {
+    const docs = await this.postsService.findPending()
+    return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: d.tagNames ?? [] })) as PostType[]
+  }
+
+  @Roles(Role.ADMIN)
+  @Mutation(() => PostType)
+  async approvePost(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
+    const doc = await this.postsService.approve(id)
+    return doc ? ({ ...doc.toObject(), id: doc._id.toString(), tagNames: doc.tagNames ?? [] } as PostType) : null
+  }
+
+  @Roles(Role.ADMIN)
+  @Mutation(() => PostType)
+  async rejectPost(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
+    const doc = await this.postsService.reject(id)
+    return doc ? ({ ...doc.toObject(), id: doc._id.toString(), tagNames: doc.tagNames ?? [] } as PostType) : null
+  }
+
+  @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   deletePost(@Args('id', { type: () => ID }) id: string) {
     return this.postsService.delete(id)

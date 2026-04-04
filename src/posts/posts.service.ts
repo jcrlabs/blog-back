@@ -57,6 +57,22 @@ export class PostsService {
       .exec()
   }
 
+  async findPending() {
+    return this.model.find({ status: PostStatus.INGESTED_MANUAL }).sort({ createdAt: -1 }).lean().exec()
+  }
+
+  async approve(id: string): Promise<PostDocument | null> {
+    return this.model
+      .findByIdAndUpdate(id, { status: PostStatus.PUBLISHED, publishedAt: new Date() }, { new: true })
+      .exec()
+  }
+
+  async reject(id: string): Promise<PostDocument | null> {
+    return this.model
+      .findByIdAndUpdate(id, { status: PostStatus.REJECTED }, { new: true })
+      .exec()
+  }
+
   async delete(id: string): Promise<boolean> {
     const result = await this.model.findByIdAndDelete(id).exec()
     return result !== null
