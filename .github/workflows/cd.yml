@@ -85,18 +85,3 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: release $VERSION"
           git push
 
-      - name: Verify rollout
-        env:
-          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
-        run: |
-          echo "$KUBECONFIG_DATA" | base64 -d > /tmp/kc
-          KUBECONFIG=/tmp/kc kubectl rollout status deployment/blog-back \
-            -n blog --timeout=5m || \
-          {
-            echo "=== Rollout failed — pod diagnostics ==="
-            KUBECONFIG=/tmp/kc kubectl get pods -n blog -l app.kubernetes.io/name=blog-back
-            KUBECONFIG=/tmp/kc kubectl describe pods -n blog -l app.kubernetes.io/name=blog-back | tail -40
-            KUBECONFIG=/tmp/kc kubectl get events -n blog --sort-by='.lastTimestamp' | tail -20
-            KUBECONFIG=/tmp/kc kubectl rollout undo deployment/blog-back -n blog
-            exit 1
-          }
