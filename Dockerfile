@@ -1,11 +1,11 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.14.0 --activate
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* tsconfig*.json nest-cli.json ./
 RUN pnpm install
 COPY . .
-RUN pnpm build && echo "=== dist contents ===" && find dist -type f | sort || (echo "ERROR: pnpm build failed" && exit 1)
-RUN test -f dist/main.js || (echo "ERROR: dist/main.js not found — see above for actual output" && exit 1)
+RUN pnpm build
+RUN test -f dist/main.js || (echo "ERROR: dist/main.js not found after nest build" && exit 1)
 
 FROM node:22-alpine AS runner
 WORKDIR /app
