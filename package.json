@@ -13,7 +13,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
-    "@apollo/server": "^4.11.0",
+    "@apollo/server": "^5.0.0",
     "@aws-sdk/client-s3": "^3.654.0",
     "@nestjs/apollo": "^13.0.0",
     "@nestjs/common": "^11.0.0",
