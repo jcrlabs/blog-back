@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql'
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
 import { PostsService } from './posts.service'
 import { PostType } from './dto/post.type'
@@ -58,6 +58,12 @@ export class PostsResolver {
   async unpublishPost(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
     const doc = await this.postsService.unpublish(id)
     return doc ? ({ ...doc.toObject(), id: doc._id.toString(), tagNames: [] } as PostType) : null
+  }
+
+  @Roles(Role.ADMIN)
+  @Mutation(() => Int)
+  async approveAllPosts(): Promise<number> {
+    return this.postsService.approveAll()
   }
 
   @Roles(Role.ADMIN)

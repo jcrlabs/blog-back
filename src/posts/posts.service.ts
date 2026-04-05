@@ -60,6 +60,14 @@ export class PostsService {
       .exec()
   }
 
+  async approveAll(): Promise<number> {
+    const result = await this.model.updateMany(
+      { status: PostStatus.INGESTED_MANUAL },
+      { status: PostStatus.PUBLISHED, publishedAt: new Date() },
+    )
+    return result.modifiedCount
+  }
+
   async findPending() {
     return this.model.find({ status: PostStatus.INGESTED_MANUAL }).sort({ createdAt: -1 }).lean().exec()
   }
