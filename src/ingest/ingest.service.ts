@@ -83,11 +83,24 @@ export class IngestService {
             this.logger.warn(`Failed to insert item "${item.title}" from ${source.name}: ${itemErr}`)
           }
         }
+        await this.trimSource(source.name)
       } catch (err) {
         this.logger.warn(`Failed to ingest ${source.name}: ${err}`)
       }
     }
     this.logger.log('RSS ingestion complete')
+  }
+
+  private async trimSource(sourceName: string) {
+    const count = await this.postModel.countDocuments({ source: sourceName })
+    if (count <= 50) return
+    const oldest = await this.postModel
+      .find({ source: sourceName })
+      .sort({ publishedAt: 1 })
+      .limit(count - 50)
+      .select('_id')
+      .lean()
+    await this.postModel.deleteMany({ _id: { $in: oldest.map((p) => p._id) } })
   }
 
   private extractTags(text: string): string[] {
