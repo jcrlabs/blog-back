@@ -9,7 +9,6 @@ import { Post, type PostDocument } from '../posts/schemas/post.schema'
 const AUTO_APPROVE = [
   { name: 'Kubernetes Blog', url: 'https://kubernetes.io/feed.xml' },
   { name: 'CNCF Blog', url: 'https://www.cncf.io/feed/' },
-  { name: 'CNCF Case Studies', url: 'https://www.cncf.io/case-studies/feed/' },
   { name: 'dev.to kubernetes', url: 'https://dev.to/feed/tag/kubernetes' },
   { name: 'dev.to devops', url: 'https://dev.to/feed/tag/devops' },
   { name: 'dev.to docker', url: 'https://dev.to/feed/tag/docker' },
@@ -21,7 +20,6 @@ const AUTO_APPROVE = [
   { name: 'dev.to mlops', url: 'https://dev.to/feed/tag/mlops' },
   { name: 'Prometheus Blog', url: 'https://prometheus.io/blog/feed.xml' },
   { name: 'Grafana Blog', url: 'https://grafana.com/blog/index.xml' },
-  { name: 'ArgoCD Blog', url: 'https://blog.argoproj.io/feed' },
   { name: 'Cilium Blog', url: 'https://cilium.io/blog/rss.xml' },
   { name: 'Flux Blog', url: 'https://fluxcd.io/blog/index.xml' },
 ]
@@ -30,13 +28,9 @@ const MANUAL_APPROVE = [
   { name: 'Learnk8s', url: 'https://learnk8s.io/rss.xml' },
   { name: 'The New Stack', url: 'https://thenewstack.io/feed/' },
   { name: 'HashiCorp Blog', url: 'https://www.hashicorp.com/blog/feed.xml' },
-  { name: 'Weaveworks Blog', url: 'https://www.weave.works/blog/feed' },
   { name: 'Cloudflare Blog', url: 'https://blog.cloudflare.com/rss/' },
   { name: 'Tailscale Blog', url: 'https://tailscale.com/blog/index.xml' },
   { name: 'Fly.io Blog', url: 'https://fly.io/blog/feed.xml' },
-  { name: 'PlanetScale Blog', url: 'https://planetscale.com/blog/feed.xml' },
-  { name: 'Hacker News K8s', url: 'https://hnrss.org/newest?q=kubernetes' },
-  { name: 'Hacker News Go', url: 'https://hnrss.org/newest?q=golang' },
 ]
 
 const TAG_MAP: Record<string, string[]> = {
@@ -68,17 +62,21 @@ export class IngestService {
           if (exists) continue
           const tags = this.extractTags(item.title + ' ' + (item.contentSnippet ?? ''))
           const content = (item as unknown as { content?: string }).content ?? null
-          await this.postModel.create({
-            title: item.title,
-            slug: await this.uniqueSlug(item.title),
-            summary: item.contentSnippet?.slice(0, 500),
-            content: content || undefined,
-            sourceUrl: item.link,
-            source: source.name,
-            status: source.auto ? PostStatus.INGESTED_AUTO : PostStatus.INGESTED_MANUAL,
-            publishedAt: source.auto ? new Date() : undefined,
-            tagNames: tags,
-          })
+          try {
+            await this.postModel.create({
+              title: item.title,
+              slug: await this.uniqueSlug(item.title),
+              summary: item.contentSnippet?.slice(0, 500),
+              content: content || undefined,
+              sourceUrl: item.link,
+              source: source.name,
+              status: source.auto ? PostStatus.INGESTED_AUTO : PostStatus.INGESTED_MANUAL,
+              publishedAt: source.auto ? new Date() : undefined,
+              tagNames: tags,
+            })
+          } catch (itemErr) {
+            this.logger.warn(`Failed to insert item "${item.title}" from ${source.name}: ${itemErr}`)
+          }
         }
       } catch (err) {
         this.logger.warn(`Failed to ingest ${source.name}: ${err}`)
