@@ -71,7 +71,7 @@ export class IngestService {
               sourceUrl: item.link,
               source: source.name,
               status: source.auto ? PostStatus.INGESTED_AUTO : PostStatus.INGESTED_MANUAL,
-              publishedAt: source.auto ? new Date() : undefined,
+              publishedAt: source.auto ? (item.isoDate ? new Date(item.isoDate) : new Date()) : undefined,
               tagNames: tags,
             })
           } catch (itemErr) {
