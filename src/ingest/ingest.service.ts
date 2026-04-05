@@ -22,6 +22,11 @@ const AUTO_APPROVE = [
   { name: 'Grafana Blog', url: 'https://grafana.com/blog/index.xml' },
   { name: 'Cilium Blog', url: 'https://cilium.io/blog/rss.xml' },
   { name: 'Flux Blog', url: 'https://fluxcd.io/blog/index.xml' },
+  { name: 'Medium golang', url: 'https://medium.com/feed/tag/golang' },
+  { name: 'Medium AI', url: 'https://medium.com/feed/tag/artificial-intelligence' },
+  { name: 'Medium LLM', url: 'https://medium.com/feed/tag/llm' },
+  { name: 'Medium platform-engineering', url: 'https://medium.com/feed/tag/platform-engineering' },
+  { name: 'Medium mlops', url: 'https://medium.com/feed/tag/mlops' },
 ]
 
 const MANUAL_APPROVE = [
