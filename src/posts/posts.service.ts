@@ -26,6 +26,9 @@ export class PostsService {
     if (filter?.source) {
       query.source = filter.source
     }
+    if (filter?.since) {
+      query.publishedAt = { $gte: new Date(filter.since) }
+    }
 
     const limit = pagination?.first ?? 20
     let q = this.model.find(query).sort({ publishedAt: -1 }).limit(limit)
