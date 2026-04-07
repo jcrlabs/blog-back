@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, type FilterQuery } from 'mongoose'
+import { Model, Types, type FilterQuery } from 'mongoose'
 import slugify from 'slugify'
 import { Post, PostStatus, type PostDocument } from './schemas/post.schema'
 import type { CreatePostInput } from './dto/create-post.input'
@@ -26,13 +26,19 @@ export class PostsService {
     if (filter?.source) {
       query.source = filter.source
     }
+    if (filter?.since) {
+      query.publishedAt = { $gte: new Date(filter.since) }
+    }
 
     const limit = pagination?.first ?? 20
     let q = this.model.find(query).sort({ publishedAt: -1 }).limit(limit)
 
     if (pagination?.after) {
-      const cursor = Buffer.from(pagination.after, 'base64').toString()
-      q = q.where('_id').lt(cursor as unknown as number)
+      const rawCursor = Buffer.from(pagination.after, 'base64').toString()
+      if (!Types.ObjectId.isValid(rawCursor)) {
+        throw new BadRequestException('Invalid pagination cursor')
+      }
+      q = q.where('_id').lt(new Types.ObjectId(rawCursor) as unknown as number)
     }
 
     return q.lean().exec()
@@ -54,6 +60,30 @@ export class PostsService {
   async unpublish(id: string): Promise<PostDocument | null> {
     return this.model
       .findByIdAndUpdate(id, { status: PostStatus.DRAFT, $unset: { publishedAt: 1 } }, { new: true })
+      .exec()
+  }
+
+  async approveAll(): Promise<number> {
+    const result = await this.model.updateMany(
+      { status: PostStatus.INGESTED_MANUAL },
+      { status: PostStatus.PUBLISHED, publishedAt: new Date() },
+    )
+    return result.modifiedCount
+  }
+
+  async findPending() {
+    return this.model.find({ status: PostStatus.INGESTED_MANUAL }).sort({ createdAt: -1 }).lean().exec()
+  }
+
+  async approve(id: string): Promise<PostDocument | null> {
+    return this.model
+      .findByIdAndUpdate(id, { status: PostStatus.PUBLISHED, publishedAt: new Date() }, { new: true })
+      .exec()
+  }
+
+  async reject(id: string): Promise<PostDocument | null> {
+    return this.model
+      .findByIdAndUpdate(id, { status: PostStatus.REJECTED }, { new: true })
       .exec()
   }
 

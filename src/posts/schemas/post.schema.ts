@@ -20,8 +20,8 @@ export class Post {
   @Prop({ required: true, unique: true })
   slug: string
 
-  @Prop({ type: Object })
-  content: Record<string, unknown>
+  @Prop()
+  content: string
 
   @Prop()
   summary: string

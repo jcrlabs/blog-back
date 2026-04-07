@@ -27,6 +27,9 @@ export class PostType {
   publishedAt?: Date
 
   @Field({ nullable: true })
+  content?: string
+
+  @Field({ nullable: true })
   sourceUrl?: string
 
   @Field({ nullable: true })

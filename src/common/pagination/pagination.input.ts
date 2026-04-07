@@ -7,7 +7,7 @@ export class PaginationInput {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(500)
   first?: number = 20
 
   @Field({ nullable: true })

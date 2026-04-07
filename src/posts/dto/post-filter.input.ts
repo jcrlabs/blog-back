@@ -27,4 +27,9 @@ export class PostFilterInput {
   @IsOptional()
   @IsString()
   source?: string
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  since?: string
 }
