@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, type FilterQuery } from 'mongoose'
+import { Model, Types, type FilterQuery } from 'mongoose'
 import slugify from 'slugify'
 import { Post, PostStatus, type PostDocument } from './schemas/post.schema'
 import type { CreatePostInput } from './dto/create-post.input'
@@ -34,8 +34,11 @@ export class PostsService {
     let q = this.model.find(query).sort({ publishedAt: -1 }).limit(limit)
 
     if (pagination?.after) {
-      const cursor = Buffer.from(pagination.after, 'base64').toString()
-      q = q.where('_id').lt(cursor as unknown as number)
+      const rawCursor = Buffer.from(pagination.after, 'base64').toString()
+      if (!Types.ObjectId.isValid(rawCursor)) {
+        throw new BadRequestException('Invalid pagination cursor')
+      }
+      q = q.where('_id').lt(new Types.ObjectId(rawCursor) as unknown as number)
     }
 
     return q.lean().exec()
