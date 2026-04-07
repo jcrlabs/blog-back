@@ -7,6 +7,9 @@ export class GqlThrottlerGuard extends ThrottlerGuard {
   getRequestResponse(context: ExecutionContext) {
     const gqlCtx = GqlExecutionContext.create(context)
     const ctx = gqlCtx.getContext<{ req: Request; res: Response }>()
-    return { req: ctx.req, res: ctx.res }
+    // GraphQL context does not expose a response object — provide a no-op stub
+    // so ThrottlerGuard.handleRequest can set rate-limit headers without crashing.
+    const res = ctx.res ?? ({ header: () => undefined } as unknown as Response)
+    return { req: ctx.req, res }
   }
 }
