@@ -1,5 +1,6 @@
 import { Resolver, Mutation, Query, Args } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { AuthResponse } from './dto/auth-response.type'
 import { LoginInput } from './dto/login.input'
@@ -25,6 +26,7 @@ export class AuthResolver {
   constructor(private authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { ttl: 900_000, limit: 5 } })
   @Mutation(() => AuthResponse)
   login(@Args('input') input: LoginInput) {
     return this.authService.login(input.email, input.password)
