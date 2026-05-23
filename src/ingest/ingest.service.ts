@@ -7,42 +7,56 @@ import { Model } from 'mongoose'
 import { Post, type PostDocument } from '../posts/schemas/post.schema'
 
 const AUTO_APPROVE = [
-  { name: 'Kubernetes Blog', url: 'https://kubernetes.io/feed.xml' },
-  { name: 'CNCF Blog', url: 'https://www.cncf.io/feed/' },
-  { name: 'dev.to kubernetes', url: 'https://dev.to/feed/tag/kubernetes' },
-  { name: 'dev.to devops', url: 'https://dev.to/feed/tag/devops' },
-  { name: 'dev.to docker', url: 'https://dev.to/feed/tag/docker' },
-  { name: 'dev.to cloud', url: 'https://dev.to/feed/tag/cloud' },
-  { name: 'dev.to go', url: 'https://dev.to/feed/tag/go' },
-  { name: 'dev.to rust', url: 'https://dev.to/feed/tag/rust' },
-  { name: 'dev.to typescript', url: 'https://dev.to/feed/tag/typescript' },
-  { name: 'dev.to webassembly', url: 'https://dev.to/feed/tag/webassembly' },
-  { name: 'dev.to mlops', url: 'https://dev.to/feed/tag/mlops' },
-  { name: 'Prometheus Blog', url: 'https://prometheus.io/blog/feed.xml' },
-  { name: 'Grafana Blog', url: 'https://grafana.com/blog/index.xml' },
-  { name: 'Cilium Blog', url: 'https://cilium.io/blog/rss.xml' },
-  { name: 'Flux Blog', url: 'https://fluxcd.io/blog/index.xml' },
-  { name: 'Medium golang', url: 'https://medium.com/feed/tag/golang' },
-  { name: 'Medium AI', url: 'https://medium.com/feed/tag/artificial-intelligence' },
-  { name: 'Medium LLM', url: 'https://medium.com/feed/tag/llm' },
-  { name: 'Medium platform-engineering', url: 'https://medium.com/feed/tag/platform-engineering' },
-  { name: 'Medium mlops', url: 'https://medium.com/feed/tag/mlops' },
-]
-
-const MANUAL_APPROVE = [
-  { name: 'Learnk8s', url: 'https://learnk8s.io/rss.xml' },
-  { name: 'The New Stack', url: 'https://thenewstack.io/feed/' },
-  { name: 'HashiCorp Blog', url: 'https://www.hashicorp.com/blog/feed.xml' },
-  { name: 'Cloudflare Blog', url: 'https://blog.cloudflare.com/rss/' },
-  { name: 'Tailscale Blog', url: 'https://tailscale.com/blog/index.xml' },
-  { name: 'Fly.io Blog', url: 'https://fly.io/blog/feed.xml' },
+  // Labs / Research
+  { name: 'Anthropic Blog',      url: 'https://www.anthropic.com/rss.xml' },
+  { name: 'OpenAI Blog',         url: 'https://openai.com/blog/rss.xml' },
+  { name: 'Google DeepMind',     url: 'https://deepmind.google/blog/rss.xml' },
+  { name: 'Hugging Face Blog',   url: 'https://huggingface.co/blog/feed.xml' },
+  { name: 'Mistral AI',          url: 'https://mistral.ai/news/rss.xml' },
+  { name: 'Cohere Blog',         url: 'https://cohere.com/blog/rss' },
+  { name: 'Together AI',         url: 'https://www.together.ai/blog/rss' },
+  { name: 'AssemblyAI Blog',     url: 'https://www.assemblyai.com/blog/rss/' },
+  // Expert bloggers
+  { name: 'Simon Willison',      url: 'https://simonwillison.net/atom/everything/' },
+  { name: 'Chip Huyen',          url: 'https://huyenchip.com/feed.xml' },
+  { name: 'Sebastian Raschka',   url: 'https://magazine.sebastianraschka.com/feed' },
+  { name: 'The Batch',           url: 'https://www.deeplearning.ai/the-batch/feed/' },
+  // Frameworks
+  { name: 'LangChain Blog',      url: 'https://blog.langchain.dev/rss/' },
+  { name: 'LlamaIndex Blog',     url: 'https://www.llamaindex.ai/blog/rss.xml' },
+  // dev.to AI tags
+  { name: 'dev.to ai',           url: 'https://dev.to/feed/tag/ai' },
+  { name: 'dev.to llm',          url: 'https://dev.to/feed/tag/llm' },
+  { name: 'dev.to machinelearning', url: 'https://dev.to/feed/tag/machinelearning' },
+  { name: 'dev.to openai',       url: 'https://dev.to/feed/tag/openai' },
+  { name: 'dev.to claudeai',     url: 'https://dev.to/feed/tag/claudeai' },
+  { name: 'dev.to rag',          url: 'https://dev.to/feed/tag/rag' },
+  { name: 'dev.to agents',       url: 'https://dev.to/feed/tag/agents' },
+  // Medium AI tags
+  { name: 'Medium AI',           url: 'https://medium.com/feed/tag/artificial-intelligence' },
+  { name: 'Medium LLM',          url: 'https://medium.com/feed/tag/llm' },
+  { name: 'Medium MLOps',        url: 'https://medium.com/feed/tag/mlops' },
+  { name: 'Medium GenAI',        url: 'https://medium.com/feed/tag/generative-ai' },
+  // Publications
+  { name: 'Towards Data Science', url: 'https://towardsdatascience.com/feed' },
 ]
 
 const TAG_MAP: Record<string, string[]> = {
-  kubernetes: ['kubernetes', 'k8s'], helm: ['helm'], argocd: ['argocd', 'gitops'],
-  docker: ['docker', 'container'], go: ['go', 'golang'], rust: ['rust'],
-  prometheus: ['prometheus', 'monitoring'], grafana: ['grafana'], terraform: ['terraform'],
-  'github-actions': ['ci/cd', 'github actions'], react: ['react'], nestjs: ['nestjs'],
+  llm:            ['llm', 'large language model', 'language model'],
+  rag:            ['rag', 'retrieval augmented', 'retrieval-augmented'],
+  mcp:            ['mcp', 'model context protocol'],
+  agents:         ['agent', 'agentic', 'multi-agent', 'autonomous agent'],
+  'fine-tuning':  ['fine-tun', 'finetuning', 'finetune', 'lora', 'qlora'],
+  prompting:      ['prompt engineering', 'few-shot', 'chain-of-thought', 'cot', 'system prompt'],
+  openai:         ['openai', 'gpt-4', 'gpt4', 'chatgpt', ' o1 ', ' o3 '],
+  anthropic:      ['anthropic', 'claude', 'claude-3', 'claude 3'],
+  gemini:         ['gemini', 'deepmind', 'google ai', 'bard'],
+  mistral:        ['mistral', 'mixtral'],
+  'open-source':  ['llama', 'ollama', 'hugging face', 'huggingface', 'phi-', 'qwen', 'falcon', 'open-source model'],
+  mlops:          ['mlops', 'ml ops', 'model deployment', 'model serving', 'inference server'],
+  'vector-db':    ['vector database', 'vector db', 'pinecone', 'weaviate', 'chroma', 'qdrant', 'faiss', 'embedding store'],
+  architecture:   ['ai architecture', 'system design', 'ai system', 'ai engineer', 'ai infrastructure'],
+  'ai-safety':    ['alignment', 'ai safety', 'responsible ai', 'guardrail', 'red team'],
 }
 
 @Injectable()
@@ -57,7 +71,7 @@ export class IngestService {
   @Cron('0 */6 * * *')
   async ingestFeeds() {
     this.logger.log('Starting RSS ingestion')
-    const all = [...AUTO_APPROVE.map((s) => ({ ...s, auto: true })), ...MANUAL_APPROVE.map((s) => ({ ...s, auto: false }))]
+    const all = AUTO_APPROVE.map((s) => ({ ...s, auto: true }))
     for (const source of all) {
       try {
         const feed = await this.parser.parseURL(source.url)
