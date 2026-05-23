@@ -92,4 +92,12 @@ export class PostsResolver {
   deletePost(@Args('id', { type: () => ID }) id: string) {
     return this.postsService.delete(id)
   }
+
+  @Public()
+  @Mutation(() => PostType, { nullable: true })
+  async toggleFavorite(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
+    const doc = await this.postsService.toggleFavorite(id)
+    if (!doc) return null
+    return { ...doc.toObject(), id: doc._id.toString(), tagNames: doc.tagNames ?? [] } as PostType
+  }
 }

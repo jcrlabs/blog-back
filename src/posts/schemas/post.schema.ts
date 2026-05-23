@@ -53,6 +53,9 @@ export class Post {
   @Prop()
   source: string
 
+  @Prop({ default: false })
+  favorited: boolean
+
   createdAt: Date
   updatedAt: Date
 }

@@ -5,6 +5,7 @@ import { PostStatus } from '../posts/schemas/post.schema'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { Post, type PostDocument } from '../posts/schemas/post.schema'
+import { PostsService } from '../posts/posts.service'
 
 const AUTO_APPROVE = [
   // Labs / Research
@@ -66,10 +67,14 @@ export class IngestService {
 
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
+    private postsService: PostsService,
   ) {}
 
   @Cron('0 */6 * * *')
   async ingestFeeds() {
+    this.logger.log('Clearing non-favorited posts before ingestion')
+    const deleted = await this.postsService.deleteAllNonFavorited()
+    this.logger.log(`Deleted ${deleted} non-favorited posts`)
     this.logger.log('Starting RSS ingestion')
     const all = AUTO_APPROVE.map((s) => ({ ...s, auto: true }))
     for (const source of all) {
@@ -97,24 +102,11 @@ export class IngestService {
             this.logger.warn(`Failed to insert item "${item.title}" from ${source.name}: ${itemErr}`)
           }
         }
-        await this.trimSource(source.name)
       } catch (err) {
         this.logger.warn(`Failed to ingest ${source.name}: ${err}`)
       }
     }
     this.logger.log('RSS ingestion complete')
-  }
-
-  private async trimSource(sourceName: string) {
-    const count = await this.postModel.countDocuments({ source: sourceName })
-    if (count <= 50) return
-    const oldest = await this.postModel
-      .find({ source: sourceName })
-      .sort({ publishedAt: 1 })
-      .limit(count - 50)
-      .select('_id')
-      .lean()
-    await this.postModel.deleteMany({ _id: { $in: oldest.map((p) => p._id) } })
   }
 
   private extractTags(text: string): string[] {

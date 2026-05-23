@@ -38,6 +38,9 @@ export class PostType {
   @Field(() => [String], { defaultValue: [] })
   tagNames: string[]
 
+  @Field({ defaultValue: false })
+  favorited: boolean
+
   @Field()
   createdAt: Date
 

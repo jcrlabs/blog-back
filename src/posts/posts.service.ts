@@ -92,6 +92,18 @@ export class PostsService {
     return result !== null
   }
 
+  async toggleFavorite(id: string): Promise<PostDocument | null> {
+    const post = await this.model.findById(id).exec()
+    if (!post) return null
+    post.favorited = !post.favorited
+    return post.save()
+  }
+
+  async deleteAllNonFavorited(): Promise<number> {
+    const result = await this.model.deleteMany({ favorited: { $ne: true } }).exec()
+    return result.deletedCount
+  }
+
   private async uniqueSlug(title: string): Promise<string> {
     const base = slugify(title, { lower: true, strict: true })
     let slug = base
