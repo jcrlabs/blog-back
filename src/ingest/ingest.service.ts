@@ -76,11 +76,16 @@ export class IngestService {
     const deleted = await this.postsService.deleteAllNonFavorited()
     this.logger.log(`Deleted ${deleted} non-favorited posts`)
     this.logger.log('Starting RSS ingestion')
+    const cutoff = new Date(Date.now() - 6 * 60 * 60 * 1000)
     const all = AUTO_APPROVE.map((s) => ({ ...s, auto: true }))
     for (const source of all) {
       try {
         const feed = await this.parser.parseURL(source.url)
-        for (const item of feed.items.slice(0, 20)) {
+        const recent = feed.items.filter(item => {
+          if (!item.isoDate) return true // include if no date (can't filter)
+          return new Date(item.isoDate) >= cutoff
+        })
+        for (const item of recent) {
           if (!item.link || !item.title) continue
           const exists = await this.postModel.findOne({ sourceUrl: item.link }).lean()
           if (exists) continue
