@@ -102,8 +102,10 @@ export class IngestService {
               sourceUrl: item.link,
               source: source.name,
               status: PostStatus.INGESTED_AUTO,
-              // premium sources: always use now so they surface in the feed regardless of original date
-              publishedAt: source.mode === 'top' ? new Date() : (item.isoDate ? new Date(item.isoDate) : new Date()),
+              // premium: random timestamp within last 6h so they mix naturally with community posts
+              publishedAt: source.mode === 'top'
+                ? new Date(Date.now() - Math.random() * 6 * 60 * 60 * 1000)
+                : (item.isoDate ? new Date(item.isoDate) : new Date()),
               tagNames: tags,
             })
           } catch (itemErr) {
