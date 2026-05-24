@@ -119,7 +119,7 @@ export class IngestService {
   private isNonEnglish(title: string): boolean {
     // Reject if >15% of chars are CJK, Arabic, Cyrillic, Hebrew, Thai, etc.
     const nonLatin = (title.match(/[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3000-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/g) ?? []).length
-    return nonLatin / title.length > 0.15
+    return nonLatin / title.length > 0.05
   }
 
   private extractTags(text: string): string[] {
