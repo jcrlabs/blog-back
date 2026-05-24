@@ -102,7 +102,8 @@ export class IngestService {
               sourceUrl: item.link,
               source: source.name,
               status: PostStatus.INGESTED_AUTO,
-              publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
+              // premium sources: always use now so they surface in the feed regardless of original date
+              publishedAt: source.mode === 'top' ? new Date() : (item.isoDate ? new Date(item.isoDate) : new Date()),
               tagNames: tags,
             })
           } catch (itemErr) {
