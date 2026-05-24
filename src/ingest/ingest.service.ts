@@ -8,24 +8,25 @@ import { Post, type PostDocument } from '../posts/schemas/post.schema'
 import { PostsService } from '../posts/posts.service'
 
 const AUTO_APPROVE = [
-  // Labs / Research
-  { name: 'Anthropic Blog',      url: 'https://www.anthropic.com/rss.xml' },
+  // Labs / Research (verified working)
+  { name: 'Anthropic Blog',      url: 'https://anthropic.substack.com/feed' },
   { name: 'OpenAI Blog',         url: 'https://openai.com/blog/rss.xml' },
   { name: 'Google DeepMind',     url: 'https://deepmind.google/blog/rss.xml' },
+  { name: 'Google AI Research',  url: 'https://blog.research.google/feeds/posts/default' },
   { name: 'Hugging Face Blog',   url: 'https://huggingface.co/blog/feed.xml' },
-  { name: 'Mistral AI',          url: 'https://mistral.ai/news/rss.xml' },
-  { name: 'Cohere Blog',         url: 'https://cohere.com/blog/rss' },
-  { name: 'Together AI',         url: 'https://www.together.ai/blog/rss' },
-  { name: 'AssemblyAI Blog',     url: 'https://www.assemblyai.com/blog/rss/' },
-  // Expert bloggers
+  { name: 'Mistral AI',          url: 'https://mistral.substack.com/feed' },
+  { name: 'NVIDIA AI Blog',      url: 'https://blogs.nvidia.com/blog/category/generative-ai/feed/' },
+  { name: 'AWS ML Blog',         url: 'https://aws.amazon.com/blogs/machine-learning/feed/' },
+  // Expert bloggers (verified working)
   { name: 'Simon Willison',      url: 'https://simonwillison.net/atom/everything/' },
   { name: 'Chip Huyen',          url: 'https://huyenchip.com/feed.xml' },
   { name: 'Sebastian Raschka',   url: 'https://magazine.sebastianraschka.com/feed' },
-  { name: 'The Batch',           url: 'https://www.deeplearning.ai/the-batch/feed/' },
-  // Frameworks
-  { name: 'LangChain Blog',      url: 'https://blog.langchain.dev/rss/' },
-  { name: 'LlamaIndex Blog',     url: 'https://www.llamaindex.ai/blog/rss.xml' },
-  // dev.to AI tags
+  { name: 'Lilian Weng',         url: 'https://lilianweng.github.io/index.xml' },
+  { name: 'Jay Alammar',         url: 'https://jalammar.github.io/feed.xml' },
+  { name: 'The Sequence',        url: 'https://thesequence.substack.com/feed' },
+  // Frameworks (verified working)
+  { name: 'LangChain Blog',      url: 'https://blog.langchain.dev/rss.xml' },
+  // dev.to AI tags (verified working)
   { name: 'dev.to ai',           url: 'https://dev.to/feed/tag/ai' },
   { name: 'dev.to llm',          url: 'https://dev.to/feed/tag/llm' },
   { name: 'dev.to machinelearning', url: 'https://dev.to/feed/tag/machinelearning' },
@@ -33,13 +34,11 @@ const AUTO_APPROVE = [
   { name: 'dev.to claudeai',     url: 'https://dev.to/feed/tag/claudeai' },
   { name: 'dev.to rag',          url: 'https://dev.to/feed/tag/rag' },
   { name: 'dev.to agents',       url: 'https://dev.to/feed/tag/agents' },
-  // Medium AI tags
+  // Medium AI tags (verified working)
   { name: 'Medium AI',           url: 'https://medium.com/feed/tag/artificial-intelligence' },
   { name: 'Medium LLM',          url: 'https://medium.com/feed/tag/llm' },
   { name: 'Medium MLOps',        url: 'https://medium.com/feed/tag/mlops' },
   { name: 'Medium GenAI',        url: 'https://medium.com/feed/tag/generative-ai' },
-  // Publications
-  { name: 'Towards Data Science', url: 'https://towardsdatascience.com/feed' },
 ]
 
 const TAG_MAP: Record<string, string[]> = {
