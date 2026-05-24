@@ -88,6 +88,7 @@ export class IngestService {
           : feed.items.filter(item => !item.isoDate || new Date(item.isoDate) >= cutoff)
         for (const item of items) {
           if (!item.link || !item.title) continue
+          if (this.isNonEnglish(item.title)) continue
           const exists = await this.postModel.findOne({ sourceUrl: item.link }).lean()
           if (exists) continue
           const tags = this.extractTags(item.title + ' ' + (item.contentSnippet ?? ''))
@@ -113,6 +114,12 @@ export class IngestService {
       }
     }
     this.logger.log('RSS ingestion complete')
+  }
+
+  private isNonEnglish(title: string): boolean {
+    // Reject if >15% of chars are CJK, Arabic, Cyrillic, Hebrew, Thai, etc.
+    const nonLatin = (title.match(/[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3000-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/g) ?? []).length
+    return nonLatin / title.length > 0.15
   }
 
   private extractTags(text: string): string[] {
