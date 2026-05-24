@@ -7,39 +7,43 @@ import { Model } from 'mongoose'
 import { Post, type PostDocument } from '../posts/schemas/post.schema'
 import { PostsService } from '../posts/posts.service'
 
-const AUTO_APPROVE = [
-  // Labs / Research (verified working)
-  { name: 'Anthropic Blog',      url: 'https://anthropic.substack.com/feed' },
-  { name: 'OpenAI Blog',         url: 'https://openai.com/blog/rss.xml' },
-  { name: 'Google DeepMind',     url: 'https://deepmind.google/blog/rss.xml' },
-  { name: 'Google AI Research',  url: 'https://blog.research.google/feeds/posts/default' },
-  { name: 'Hugging Face Blog',   url: 'https://huggingface.co/blog/feed.xml' },
-  { name: 'Mistral AI',          url: 'https://mistral.substack.com/feed' },
-  { name: 'NVIDIA AI Blog',      url: 'https://blogs.nvidia.com/blog/category/generative-ai/feed/' },
-  { name: 'AWS ML Blog',         url: 'https://aws.amazon.com/blogs/machine-learning/feed/' },
-  // Expert bloggers (verified working)
-  { name: 'Simon Willison',      url: 'https://simonwillison.net/atom/everything/' },
-  { name: 'Chip Huyen',          url: 'https://huyenchip.com/feed.xml' },
-  { name: 'Sebastian Raschka',   url: 'https://magazine.sebastianraschka.com/feed' },
-  { name: 'Lilian Weng',         url: 'https://lilianweng.github.io/index.xml' },
-  { name: 'Jay Alammar',         url: 'https://jalammar.github.io/feed.xml' },
-  { name: 'The Sequence',        url: 'https://thesequence.substack.com/feed' },
-  // Frameworks (verified working)
-  { name: 'LangChain Blog',      url: 'https://blog.langchain.dev/rss.xml' },
-  // dev.to AI tags (verified working)
-  { name: 'dev.to ai',           url: 'https://dev.to/feed/tag/ai' },
-  { name: 'dev.to llm',          url: 'https://dev.to/feed/tag/llm' },
-  { name: 'dev.to machinelearning', url: 'https://dev.to/feed/tag/machinelearning' },
-  { name: 'dev.to openai',       url: 'https://dev.to/feed/tag/openai' },
-  { name: 'dev.to claudeai',     url: 'https://dev.to/feed/tag/claudeai' },
-  { name: 'dev.to rag',          url: 'https://dev.to/feed/tag/rag' },
-  { name: 'dev.to agents',       url: 'https://dev.to/feed/tag/agents' },
-  // Medium AI tags (verified working)
-  { name: 'Medium AI',           url: 'https://medium.com/feed/tag/artificial-intelligence' },
-  { name: 'Medium LLM',          url: 'https://medium.com/feed/tag/llm' },
-  { name: 'Medium MLOps',        url: 'https://medium.com/feed/tag/mlops' },
-  { name: 'Medium GenAI',        url: 'https://medium.com/feed/tag/generative-ai' },
+// "top" = always ingest last N posts regardless of date (premium/lab sources, low frequency)
+// "recent" = only ingest posts from the last 6h (high-volume community feeds)
+const AUTO_APPROVE: { name: string; url: string; mode: 'top' | 'recent' }[] = [
+  // Labs / Research — top 25
+  { name: 'Anthropic Blog',         url: 'https://anthropic.substack.com/feed',                          mode: 'top' },
+  { name: 'OpenAI Blog',            url: 'https://openai.com/blog/rss.xml',                              mode: 'top' },
+  { name: 'Google DeepMind',        url: 'https://deepmind.google/blog/rss.xml',                         mode: 'top' },
+  { name: 'Google AI Research',     url: 'https://blog.research.google/feeds/posts/default',             mode: 'top' },
+  { name: 'Hugging Face Blog',      url: 'https://huggingface.co/blog/feed.xml',                         mode: 'top' },
+  { name: 'Mistral AI',             url: 'https://mistral.substack.com/feed',                            mode: 'top' },
+  { name: 'NVIDIA AI Blog',         url: 'https://blogs.nvidia.com/blog/category/generative-ai/feed/',   mode: 'top' },
+  { name: 'AWS ML Blog',            url: 'https://aws.amazon.com/blogs/machine-learning/feed/',           mode: 'top' },
+  // Expert bloggers — top 25
+  { name: 'Simon Willison',         url: 'https://simonwillison.net/atom/everything/',                   mode: 'top' },
+  { name: 'Chip Huyen',             url: 'https://huyenchip.com/feed.xml',                               mode: 'top' },
+  { name: 'Sebastian Raschka',      url: 'https://magazine.sebastianraschka.com/feed',                   mode: 'top' },
+  { name: 'Lilian Weng',            url: 'https://lilianweng.github.io/index.xml',                       mode: 'top' },
+  { name: 'Jay Alammar',            url: 'https://jalammar.github.io/feed.xml',                          mode: 'top' },
+  { name: 'The Sequence',           url: 'https://thesequence.substack.com/feed',                        mode: 'top' },
+  // Frameworks — top 25
+  { name: 'LangChain Blog',         url: 'https://blog.langchain.dev/rss.xml',                           mode: 'top' },
+  // dev.to AI tags — last 6h only
+  { name: 'dev.to ai',              url: 'https://dev.to/feed/tag/ai',                                   mode: 'recent' },
+  { name: 'dev.to llm',             url: 'https://dev.to/feed/tag/llm',                                  mode: 'recent' },
+  { name: 'dev.to machinelearning', url: 'https://dev.to/feed/tag/machinelearning',                      mode: 'recent' },
+  { name: 'dev.to openai',          url: 'https://dev.to/feed/tag/openai',                               mode: 'recent' },
+  { name: 'dev.to claudeai',        url: 'https://dev.to/feed/tag/claudeai',                             mode: 'recent' },
+  { name: 'dev.to rag',             url: 'https://dev.to/feed/tag/rag',                                  mode: 'recent' },
+  { name: 'dev.to agents',          url: 'https://dev.to/feed/tag/agents',                               mode: 'recent' },
+  // Medium AI tags — last 6h only
+  { name: 'Medium AI',              url: 'https://medium.com/feed/tag/artificial-intelligence',          mode: 'recent' },
+  { name: 'Medium LLM',             url: 'https://medium.com/feed/tag/llm',                              mode: 'recent' },
+  { name: 'Medium MLOps',           url: 'https://medium.com/feed/tag/mlops',                            mode: 'recent' },
+  { name: 'Medium GenAI',           url: 'https://medium.com/feed/tag/generative-ai',                    mode: 'recent' },
 ]
+
+const TOP_N = 25
 
 const TAG_MAP: Record<string, string[]> = {
   llm:            ['llm', 'large language model', 'language model'],
@@ -76,15 +80,13 @@ export class IngestService {
     this.logger.log(`Deleted ${deleted} non-favorited posts`)
     this.logger.log('Starting RSS ingestion')
     const cutoff = new Date(Date.now() - 6 * 60 * 60 * 1000)
-    const all = AUTO_APPROVE.map((s) => ({ ...s, auto: true }))
-    for (const source of all) {
+    for (const source of AUTO_APPROVE) {
       try {
         const feed = await this.parser.parseURL(source.url)
-        const recent = feed.items.filter(item => {
-          if (!item.isoDate) return true // include if no date (can't filter)
-          return new Date(item.isoDate) >= cutoff
-        })
-        for (const item of recent) {
+        const items = source.mode === 'top'
+          ? feed.items.slice(0, TOP_N)
+          : feed.items.filter(item => !item.isoDate || new Date(item.isoDate) >= cutoff)
+        for (const item of items) {
           if (!item.link || !item.title) continue
           const exists = await this.postModel.findOne({ sourceUrl: item.link }).lean()
           if (exists) continue
@@ -98,8 +100,8 @@ export class IngestService {
               content: content || undefined,
               sourceUrl: item.link,
               source: source.name,
-              status: source.auto ? PostStatus.INGESTED_AUTO : PostStatus.INGESTED_MANUAL,
-              publishedAt: source.auto ? (item.isoDate ? new Date(item.isoDate) : new Date()) : undefined,
+              status: PostStatus.INGESTED_AUTO,
+              publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
               tagNames: tags,
             })
           } catch (itemErr) {
