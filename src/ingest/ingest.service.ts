@@ -89,7 +89,8 @@ export class IngestService {
         for (const item of items) {
           if (!item.link || !item.title) continue
           if (this.isNonEnglish(item.title)) continue
-          const exists = await this.postModel.findOne({ sourceUrl: item.link }).lean()
+          const normalizedUrl = this.normalizeUrl(item.link)
+          const exists = await this.postModel.findOne({ sourceUrl: normalizedUrl }).lean()
           if (exists) continue
           const tags = this.extractTags(item.title + ' ' + (item.contentSnippet ?? ''))
           const content = (item as unknown as { content?: string }).content ?? null
@@ -99,7 +100,7 @@ export class IngestService {
               slug: await this.uniqueSlug(item.title),
               summary: item.contentSnippet?.slice(0, 500),
               content: content || undefined,
-              sourceUrl: item.link,
+              sourceUrl: normalizedUrl,
               source: source.name,
               status: PostStatus.INGESTED_AUTO,
               // premium: random timestamp within last 6h so they mix naturally with community posts
@@ -120,9 +121,23 @@ export class IngestService {
   }
 
   private isNonEnglish(title: string): boolean {
-    // Reject if >15% of chars are CJK, Arabic, Cyrillic, Hebrew, Thai, etc.
+    // Reject non-Latin scripts (CJK, Arabic, Cyrillic, Hebrew, Thai, etc.)
     const nonLatin = (title.match(/[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3000-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/g) ?? []).length
-    return nonLatin / title.length > 0.05
+    if (nonLatin / title.length > 0.05) return true
+    // Reject Latin-script non-English: accented characters typical of Spanish, Portuguese, French, German, etc.
+    const accented = (title.match(/[áàâãäåéèêëíìîïóòôõöúùûüýÿñçæœÁÀÂÃÄÅÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÝŸÑÇÆŒ]/g) ?? []).length
+    return accented / title.length > 0.06
+  }
+
+  private normalizeUrl(url: string): string {
+    try {
+      const u = new URL(url)
+      u.search = ''
+      u.hash = ''
+      return u.toString()
+    } catch {
+      return url
+    }
   }
 
   private extractTags(text: string): string[] {
