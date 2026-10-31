@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
 import { PostsService } from './posts.service'
 import { PostType } from './dto/post.type'
+import { FeedStatsType } from './dto/feed-stats.type'
 import { CreatePostInput } from './dto/create-post.input'
 import { PostFilterInput } from './dto/post-filter.input'
 import { PaginationInput } from '../common/pagination/pagination.input'
@@ -26,6 +27,12 @@ export class PostsResolver {
   ): Promise<PostType[]> {
     const docs = await this.postsService.findPublished(filter, pagination)
     return docs.map((d) => ({ ...d, id: d._id.toString(), tagNames: d.tagNames ?? [] })) as PostType[]
+  }
+
+  @Public()
+  @Query(() => FeedStatsType)
+  feedStats(): Promise<FeedStatsType> {
+    return this.postsService.feedStats() as Promise<FeedStatsType>
   }
 
   @Public()
@@ -91,5 +98,14 @@ export class PostsResolver {
   @Mutation(() => Boolean)
   deletePost(@Args('id', { type: () => ID }) id: string) {
     return this.postsService.delete(id)
+  }
+
+  // Favorited posts are exempt from retention pruning, so only admins may pin them
+  @Roles(Role.ADMIN)
+  @Mutation(() => PostType, { nullable: true })
+  async toggleFavorite(@Args('id', { type: () => ID }) id: string): Promise<PostType | null> {
+    const doc = await this.postsService.toggleFavorite(id)
+    if (!doc) return null
+    return { ...doc.toObject(), id: doc._id.toString(), tagNames: doc.tagNames ?? [] } as PostType
   }
 }

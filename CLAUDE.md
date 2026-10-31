@@ -159,6 +159,7 @@ type Mutation {
 5. **Slug auto-generado**: desde title, con collision handling (`title-2`, `title-3`)
 6. **Content como Mixed type**: TipTap JSON se guarda sin schema validation en Mongoose (`Schema.Types.Mixed`)
 7. **Testing con mongodb-memory-server**: no necesita MongoDB real para E2E
+8. **Guards en contexto GraphQL**: cualquier `APP_GUARD` global debe extender el guard base y sobrescribir `getRequestResponse()` para extraer `req/res` del contexto GQL (`GqlExecutionContext.create(ctx).getContext()`). Usar el guard genérico de NestJS directamente como global rompe todas las operaciones GraphQL. Ver `GqlAuthGuard` y `GqlThrottlerGuard` en `src/common/guards/` como referencia.
 
 ## Deploy
 

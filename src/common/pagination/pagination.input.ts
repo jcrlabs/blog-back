@@ -1,5 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql'
-import { IsOptional, IsInt, Min, Max } from 'class-validator'
+import { IsOptional, IsInt, IsString, Min, Max, MaxLength } from 'class-validator'
 
 @InputType()
 export class PaginationInput {
@@ -7,10 +7,12 @@ export class PaginationInput {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(500)
+  @Max(100)
   first?: number = 20
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsString()
+  @MaxLength(200)
   after?: string
 }

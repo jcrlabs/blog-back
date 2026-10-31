@@ -5,7 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo'
 import { ScheduleModule } from '@nestjs/schedule'
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { PostsModule } from './posts/posts.module'
@@ -43,6 +44,6 @@ import { HealthModule } from './health/health.module'
     IngestModule,
     HealthModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [{ provide: APP_GUARD, useClass: GqlThrottlerGuard }],
 })
 export class AppModule {}

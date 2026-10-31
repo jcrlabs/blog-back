@@ -1,7 +1,9 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
 import { PostStatus } from '../schemas/post.schema'
+import { SourceTier } from '../../ingest/sources'
 
 registerEnumType(PostStatus, { name: 'PostStatus' })
+registerEnumType(SourceTier, { name: 'SourceTier' })
 
 @ObjectType()
 export class PostType {
@@ -35,8 +37,14 @@ export class PostType {
   @Field({ nullable: true })
   source?: string
 
+  @Field(() => SourceTier, { nullable: true })
+  sourceTier?: SourceTier
+
   @Field(() => [String], { defaultValue: [] })
   tagNames: string[]
+
+  @Field({ defaultValue: false })
+  favorited: boolean
 
   @Field()
   createdAt: Date

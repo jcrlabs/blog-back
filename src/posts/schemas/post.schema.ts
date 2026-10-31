@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
+import { SourceTier } from '../../ingest/sources'
 
 export type PostDocument = Post & Document
 
@@ -53,6 +54,12 @@ export class Post {
   @Prop()
   source: string
 
+  @Prop({ type: String, enum: SourceTier })
+  sourceTier: SourceTier
+
+  @Prop({ default: false })
+  favorited: boolean
+
   createdAt: Date
   updatedAt: Date
 }
@@ -60,4 +67,5 @@ export class Post {
 export const PostSchema = SchemaFactory.createForClass(Post)
 PostSchema.index({ slug: 1 })
 PostSchema.index({ title: 'text', summary: 'text' })
-PostSchema.index({ status: 1, publishedAt: -1 })
+PostSchema.index({ status: 1, publishedAt: -1, _id: -1 })
+PostSchema.index({ sourceUrl: 1 })
