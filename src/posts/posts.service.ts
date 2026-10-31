@@ -49,7 +49,7 @@ export class PostsService {
       updatedAt: { d: Date }[]
       tiers: { _id: string; count: number }[]
       tags: { _id: string; count: number }[]
-      sources: { _id: string; count: number }[]
+      sources: { _id: { source: string; tier?: string }; count: number }[]
     }>([
       { $match: PUBLIC_FILTER },
       {
@@ -58,7 +58,11 @@ export class PostsService {
           updatedAt: [{ $group: { _id: null, d: { $max: '$createdAt' } } }],
           tiers: [{ $match: { sourceTier: { $ne: null } } }, { $group: { _id: '$sourceTier', count: { $sum: 1 } } }],
           tags: [{ $unwind: '$tagNames' }, { $group: { _id: '$tagNames', count: { $sum: 1 } } }, { $sort: { count: -1 } }],
-          sources: [{ $match: { source: { $ne: null } } }, { $group: { _id: '$source', count: { $sum: 1 } } }, { $sort: { count: -1 } }],
+          sources: [
+            { $match: { source: { $ne: null } } },
+            { $group: { _id: { source: '$source', tier: '$sourceTier' }, count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+          ],
         },
       },
     ])
@@ -68,7 +72,7 @@ export class PostsService {
       updatedAt: result?.updatedAt[0]?.d ?? null,
       tiers: toCounts(result?.tiers ?? []),
       tags: toCounts(result?.tags ?? []),
-      sources: toCounts(result?.sources ?? []),
+      sources: (result?.sources ?? []).map((r) => ({ key: r._id.source, tier: r._id.tier, count: r.count })),
     }
   }
 

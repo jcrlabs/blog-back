@@ -7,6 +7,9 @@ export class CountType {
 
   @Field(() => Int)
   count: number
+
+  @Field({ nullable: true })
+  tier?: string
 }
 
 @ObjectType()
