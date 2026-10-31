@@ -18,6 +18,9 @@ const TAG_MAP: Record<string, string[]> = {
   'ai-safety':    ['alignment', 'ai safety', 'responsible ai', 'guardrail', 'red team', 'interpretability'],
 }
 
+// Function words that are common in Spanish/Portuguese/French/Italian titles but not in English
+const NON_ENGLISH_WORDS = /\b(de|del|las|los|el|para|como|con|una|uno|por|que|y|dos|das|uma|não|les|des|du|une|pour|avec|della|che|sono)\b/gi
+
 const TRACKING_PARAMS = /^(utm_.*|ref|ref_src|source|sk|gi|fbclid|gclid)$/i
 
 export function isNonEnglish(title: string): boolean {
@@ -26,7 +29,11 @@ export function isNonEnglish(title: string): boolean {
   if (nonLatin / title.length > 0.05) return true
   // Reject Latin-script non-English: accented characters typical of Spanish, Portuguese, French, German, etc.
   const accented = (title.match(/[áàâãäåéèêëíìîïóòôõöúùûüýÿñçæœÁÀÂÃÄÅÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÝŸÑÇÆŒ]/g) ?? []).length
-  return accented / title.length > 0.06
+  if (accented / title.length > 0.06) return true
+  // Short accent-light titles ("Formas lógicas como plan de ejecución") slip through; count function words
+  const words = title.split(/\s+/).length
+  const hits = (title.match(NON_ENGLISH_WORDS) ?? []).length
+  return hits >= 2 && hits / words >= 0.15
 }
 
 // Drops tracking params and fragments but keeps meaningful query strings (e.g. ?id=, ?v=).
