@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractTags, normalizeUrl } from './feed-utils'
+import { extractTags, isNonEnglish, normalizeUrl } from './feed-utils'
 import { SOURCES } from './sources'
 
 
@@ -27,5 +27,18 @@ describe('SOURCES', () => {
   it('has unique feed urls', () => {
     const urls = SOURCES.map((s) => s.url)
     expect(new Set(urls).size).toBe(urls.length)
+  })
+})
+
+describe('isNonEnglish', () => {
+  it('rejects accent-light Spanish titles', () => {
+    expect(isNonEnglish('Formas lógicas como plan de ejecución: dentro del solver de KAG')).toBe(true)
+  })
+
+  it('keeps English titles that contain an odd function word', () => {
+    expect(isNonEnglish('Building a RAG pipeline with Claude and the Model Context Protocol')).toBe(false)
+    expect(isNonEnglish('Gemini 4 Argon in Real Use: Heavy on Tokens, and the Price Doubles Dec 1')).toBe(false)
+    expect(isNonEnglish('Prospero is a C++ coding harness for local LLMs')).toBe(false)
+    expect(isNonEnglish('How do I do evals for agents? Le Chat vs Il Mio and La Plateforme')).toBe(false)
   })
 })
