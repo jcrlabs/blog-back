@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  tag: v0.3.14
+  tag: v0.3.15
 ingress:
   host: tech-blog-api.jcrlabs.net
 env:
