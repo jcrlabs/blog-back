@@ -1,6 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql'
-import { IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsISO8601, IsOptional, IsString, MaxLength } from 'class-validator'
 import { PostStatus } from '../schemas/post.schema'
+import { SourceTier } from '../../ingest/sources'
 
 @InputType()
 export class PostFilterInput {
@@ -11,6 +12,7 @@ export class PostFilterInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   search?: string
 
   @Field({ nullable: true })
@@ -21,6 +23,7 @@ export class PostFilterInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(40)
   tag?: string
 
   @Field({ nullable: true })
@@ -30,6 +33,11 @@ export class PostFilterInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString()
+  @IsISO8601()
   since?: string
+
+  @Field(() => SourceTier, { nullable: true })
+  @IsOptional()
+  @IsEnum(SourceTier)
+  tier?: SourceTier
 }

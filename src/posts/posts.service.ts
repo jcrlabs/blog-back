@@ -7,6 +7,10 @@ import type { CreatePostInput } from './dto/create-post.input'
 import type { PostFilterInput } from './dto/post-filter.input'
 import type { PaginationInput } from '../common/pagination/pagination.input'
 
+const PUBLIC_FILTER: FilterQuery<Post> = {
+  status: { $in: [PostStatus.PUBLISHED, PostStatus.INGESTED_AUTO] },
+}
+
 @Injectable()
 export class PostsService {
   constructor(@InjectModel(Post.name) private model: Model<PostDocument>) {}
@@ -17,36 +21,60 @@ export class PostsService {
   }
 
   async findPublished(filter?: PostFilterInput, pagination?: PaginationInput) {
-    const query: FilterQuery<Post> = {
-      status: { $in: [PostStatus.PUBLISHED, PostStatus.INGESTED_AUTO] },
-    }
-    if (filter?.search) {
-      query.$text = { $search: filter.search }
-    }
-    if (filter?.source) {
-      query.source = filter.source
-    }
-    if (filter?.since) {
-      query.publishedAt = { $gte: new Date(filter.since) }
+    const query: FilterQuery<Post> = { ...PUBLIC_FILTER }
+    if (filter?.search) query.$text = { $search: filter.search }
+    if (filter?.source) query.source = filter.source
+    if (filter?.tier) query.sourceTier = filter.tier
+    if (filter?.tag) query.tagNames = filter.tag
+    if (filter?.since) query.publishedAt = { $gte: new Date(filter.since) }
+
+    // Cursor = base64("<publishedAt ISO>|<ObjectId>") so it matches the sort order
+    if (pagination?.after) {
+      const [rawDate, rawId] = Buffer.from(pagination.after, 'base64').toString().split('|')
+      const date = new Date(rawDate)
+      if (!rawId || !Types.ObjectId.isValid(rawId) || Number.isNaN(date.getTime())) {
+        throw new BadRequestException('Invalid pagination cursor')
+      }
+      const id = new Types.ObjectId(rawId)
+      query.$and = [{ $or: [{ publishedAt: { $lt: date } }, { publishedAt: date, _id: { $lt: id } }] }]
     }
 
     const limit = pagination?.first ?? 20
-    let q = this.model.find(query).sort({ publishedAt: -1 }).limit(limit)
+    return this.model.find(query).sort({ publishedAt: -1, _id: -1 }).limit(limit).lean().exec()
+  }
 
-    if (pagination?.after) {
-      const rawCursor = Buffer.from(pagination.after, 'base64').toString()
-      if (!Types.ObjectId.isValid(rawCursor)) {
-        throw new BadRequestException('Invalid pagination cursor')
-      }
-      q = q.where('_id').lt(new Types.ObjectId(rawCursor) as unknown as number)
+  async feedStats() {
+    const [result] = await this.model.aggregate<{
+      total: { n: number }[]
+      updatedAt: { d: Date }[]
+      tiers: { _id: string; count: number }[]
+      tags: { _id: string; count: number }[]
+      sources: { _id: string; count: number }[]
+    }>([
+      { $match: PUBLIC_FILTER },
+      {
+        $facet: {
+          total: [{ $count: 'n' }],
+          updatedAt: [{ $group: { _id: null, d: { $max: '$createdAt' } } }],
+          tiers: [{ $match: { sourceTier: { $ne: null } } }, { $group: { _id: '$sourceTier', count: { $sum: 1 } } }],
+          tags: [{ $unwind: '$tagNames' }, { $group: { _id: '$tagNames', count: { $sum: 1 } } }, { $sort: { count: -1 } }],
+          sources: [{ $match: { source: { $ne: null } } }, { $group: { _id: '$source', count: { $sum: 1 } } }, { $sort: { count: -1 } }],
+        },
+      },
+    ])
+    const toCounts = (rows: { _id: string; count: number }[]) => rows.map((r) => ({ key: r._id, count: r.count }))
+    return {
+      total: result?.total[0]?.n ?? 0,
+      updatedAt: result?.updatedAt[0]?.d ?? null,
+      tiers: toCounts(result?.tiers ?? []),
+      tags: toCounts(result?.tags ?? []),
+      sources: toCounts(result?.sources ?? []),
     }
-
-    return q.lean().exec()
   }
 
   findBySlug(slug: string) {
     return this.model
-      .findOne({ slug, status: { $in: [PostStatus.PUBLISHED, PostStatus.INGESTED_AUTO] } })
+      .findOne({ slug, ...PUBLIC_FILTER })
       .lean()
       .exec()
   }
@@ -99,8 +127,16 @@ export class PostsService {
     return post.save()
   }
 
-  async deleteAllNonFavorited(): Promise<number> {
-    const result = await this.model.deleteMany({ favorited: { $ne: true } }).exec()
+  // Removes non-favorited ingested posts older than cutoff, plus legacy posts ingested
+  // before tiers existed (those carried synthetic publish dates).
+  async pruneIngested(cutoff: Date): Promise<number> {
+    const result = await this.model
+      .deleteMany({
+        status: PostStatus.INGESTED_AUTO,
+        favorited: { $ne: true },
+        $or: [{ publishedAt: { $lt: cutoff } }, { sourceTier: { $exists: false } }],
+      })
+      .exec()
     return result.deletedCount
   }
 
